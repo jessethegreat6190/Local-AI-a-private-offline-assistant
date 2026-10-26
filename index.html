@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local AI — private assistant</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">◍</div>
+      <div>
+        <div class="brand-name">Local AI</div>
+        <div class="brand-sub">runs on your PC</div>
+      </div>
+    </div>
+
+    <button class="btn new-chat" id="newChat">＋&nbsp; New chat</button>
+
+    <div class="side-section">
+      <div class="side-title">Conversations</div>
+      <div class="convo-list" id="convoList"></div>
+    </div>
+
+    <div class="side-section kb">
+      <div class="side-title">
+        Knowledge base
+        <span class="count" id="kbCount">0</span>
+      </div>
+      <button class="upload" id="uploadBtn">
+        <span>⬆&nbsp; Add documents</span>
+      </button>
+      <input type="file" id="fileInput" multiple hidden>
+      <div class="doc-list" id="docList"></div>
+    </div>
+
+    <div class="side-foot">
+      <button class="memory-btn" id="memoryBtn" title="Facts about you + custom instructions">
+        <span class="mb-ico">🧠</span>
+        <span class="mb-txt">
+          <b>Memory &amp; instructions</b>
+          <small id="memoryCount">Nothing saved yet</small>
+        </span>
+        <span class="mb-ch">›</span>
+      </button>
+      <div class="status">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">connecting…</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn menu" id="menuBtn" title="Menu">☰</button>
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-mode="chat">💬 Chat</button>
+        <button class="mode-tab" data-mode="code">⌨&nbsp; Code</button>
+      </div>
+      <select id="modelSelect" class="model-select" title="Model"></select>
+      <label class="toggle" id="ragWrap" title="Answer using documents in your knowledge base">
+        <input type="checkbox" id="ragToggle" checked>
+        <span>Use documents</span>
+      </label>
+      <div class="spacer"></div>
+      <span class="badge" title="No data leaves this computer">🔒 Private &amp; offline</span>
+    </header>
+
+    <!-- ================= CHAT VIEW ================= -->
+    <section class="view" id="viewChat">
+      <div class="messages" id="messages"></div>
+
+      <div class="composer">
+        <div class="attach-preview" id="attachPreview"></div>
+        <div class="composer-row">
+          <button class="icon-btn attach" id="attachBtn" title="Attach an image">🖼</button>
+          <input type="file" id="imageInput" accept="image/*" multiple hidden>
+          <textarea id="input" rows="1" placeholder="Ask anything…   (Enter to send, Shift+Enter for a new line)"></textarea>
+          <button class="btn send" id="sendBtn">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CODE VIEW ================= -->
+    <section class="view hidden" id="viewCode">
+      <div class="code-workspace">
+        <div class="code-left">
+          <div class="cw-head">
+            <select id="codeLang" class="mini-select" title="Language"></select>
+            <select id="codeAction" class="mini-select" title="What to do"></select>
+            <div class="spacer"></div>
+            <button class="mini" id="codeReset" title="Clear the workspace">Clear</button>
+          </div>
+          <textarea id="codeInput" class="code-input" spellcheck="false"
+            placeholder="Paste your code here…"></textarea>
+          <input id="codePrompt" class="code-prompt"
+            placeholder="Optional: describe what you want (e.g. “add input validation”)">
+          <button class="btn send code-run" id="codeRun">Run&nbsp; ▸</button>
+        </div>
+        <div class="code-right">
+          <div class="code-out-head">
+            <span>Result</span>
+            <div class="spacer"></div>
+            <button class="mini" id="codeCopyAll">Copy last</button>
+          </div>
+          <div class="code-output content" id="codeOutput"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-back" id="memoryModal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="memoryTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="memoryTitle">🧠 Memory &amp; instructions</h2>
+        <p>Stored only on this computer and added to every chat. Nothing is ever uploaded.</p>
+      </div>
+      <button class="icon-btn modal-close" id="memoryClose" title="Close">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <label class="toggle mem-toggle">
+        <input type="checkbox" id="useMemory" checked>
+        <span>Use memory in chats</span>
+      </label>
+
+      <div class="mem-section">
+        <div class="mem-head">
+          <h3>About you</h3>
+          <span class="mem-hint">Short facts — one per line</span>
+        </div>
+        <div class="mem-list" id="memList"></div>
+        <div class="mem-add">
+          <textarea id="memInput" rows="2" placeholder="e.g. My name is Sam and I run a hotel in Kampala.&#10;I prefer short, direct answers."></textarea>
+          <button class="btn" id="memAdd">Add</button>
+        </div>
+      </div>
+
+      <div class="mem-section">
+        <div class="mem-head">
+          <h3>Custom instructions</h3>
+          <span class="mem-hint">Tone, rules, how it should behave</span>
+        </div>
+        <textarea id="memInstructions" rows="4"
+          placeholder="e.g. Always answer as my business assistant. Be concise. Use British spelling. Ask before assuming."></textarea>
+        <div class="mem-foot">
+          <span class="mem-status" id="memStatus">Saved locally</span>
+          <button class="btn" id="memSaveInstructions">Save instructions</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="mini danger" id="memClear">Clear all memory</button>
+      <div class="spacer"></div>
+      <button class="btn" id="memoryDone">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="drop-overlay" id="dropOverlay"><div class="drop-inner">Drop files to add to your knowledge base</div></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
